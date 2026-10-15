@@ -1875,8 +1875,8 @@ body.modal-open {
   margin: 0 auto;
   padding: 0 20px 40px 20px;
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr;
-  gap: 36px;
+  grid-template-columns: 2fr 1fr;
+  gap: 48px;
 }
 
 .footer-brand-col {
