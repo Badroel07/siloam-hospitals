@@ -38,7 +38,7 @@
           <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true">
             <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
           </svg>
-          Buka Katalog Drive
+          <span class="cta-text">Katalog Drive</span>
         </a>
       </div>
     </div>
@@ -506,7 +506,23 @@
 
       <!-- Stage / Panggung Buku 3D -->
       <div class="viewer-stage" id="viewer-stage">
-        <!-- Tombol Panah Navigasi Kiri -->
+        <!-- Floating Mobile Controls (Hanya tampil di mobile, layar penuh tanpa container) -->
+        <button type="button" class="mobile-float-close" onclick="closeFlipbook()" aria-label="Tutup Booklet">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <div class="mobile-float-pill" id="mobile-float-pill">
+          Halaman <span id="mobile-page-num">1</span> dari 6
+        </div>
+
+        <div class="mobile-float-hint" id="mobile-float-hint">
+          &larr; Geser untuk membalik halaman &rarr;
+        </div>
+
+        <!-- Tombol Panah Navigasi Kiri Desktop -->
         <button type="button" id="btn-prev-page" class="nav-arrow-btn nav-prev" onclick="flipPrev()" aria-label="Halaman Sebelumnya (Panah Kiri)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="28" height="28" aria-hidden="true">
             <polyline points="15 18 9 12 15 6" />
@@ -515,7 +531,8 @@
 
         <!-- Wadah Buku 3D Flipbook -->
         <div class="book-viewport" id="book-viewport">
-          <div class="book-container mode-spread" id="book-container">
+          <!-- Desktop 2-Page Spread 3D Book -->
+          <div class="book-container mode-spread desktop-book" id="book-container">
             <!-- Punggung Lipatan Tengah Buku -->
             <div class="book-spine-shadow" aria-hidden="true"></div>
 
@@ -577,6 +594,34 @@
                 </div>
                 <div class="leaf-shading"></div>
               </div>
+            </div>
+          </div>
+
+          <!-- Mobile 3D Book (6 Halaman Penuh, 3D Page Flip, Layar Penuh Tanpa Container) -->
+          <div class="mobile-book" id="mobile-book">
+            <div class="mobile-leaf leaf-m-1" data-page="1">
+              <img src="assets/panels/page-1.png" alt="Halaman 1: Sampul Cara Penggunaan Ozempic">
+              <div class="mobile-leaf-shadow"></div>
+            </div>
+            <div class="mobile-leaf leaf-m-2" data-page="2">
+              <img src="assets/panels/page-2.png" alt="Halaman 2: Bagian-bagian Pena Ozempic">
+              <div class="mobile-leaf-shadow"></div>
+            </div>
+            <div class="mobile-leaf leaf-m-3" data-page="3">
+              <img src="assets/panels/page-3.png" alt="Halaman 3: Pasang Jarum Baru">
+              <div class="mobile-leaf-shadow"></div>
+            </div>
+            <div class="mobile-leaf leaf-m-4" data-page="4">
+              <img src="assets/panels/page-4.png" alt="Halaman 4: Pilih Dosis">
+              <div class="mobile-leaf-shadow"></div>
+            </div>
+            <div class="mobile-leaf leaf-m-5" data-page="5">
+              <img src="assets/panels/page-5.png" alt="Halaman 5: Penyuntikan Mandiri">
+              <div class="mobile-leaf-shadow"></div>
+            </div>
+            <div class="mobile-leaf leaf-m-6" data-page="6">
+              <img src="assets/panels/page-6.png" alt="Halaman 6: Perawatan & Penyimpanan">
+              <div class="mobile-leaf-shadow"></div>
             </div>
           </div>
         </div>

@@ -39,6 +39,9 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
 }
 
 *, *::before, *::after {
@@ -57,9 +60,25 @@ body {
   color: var(--color-text-main);
   line-height: 1.5;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
+}
+
+body.modal-open {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  touch-action: none !important;
+  -webkit-overflow-scrolling: auto !important;
 }
 
 .visually-hidden {
@@ -1206,13 +1225,14 @@ body {
 .flipbook-window {
   position: relative;
   z-index: 2;
-  width: 96vw;
-  max-width: 1400px;
-  height: 94vh;
-  background-color: #111827;
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background-color: #090E1A;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1220,16 +1240,19 @@ body {
 
 /* Topbar */
 .viewer-topbar {
-  height: 60px;
-  background-color: #1F2937;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 10px 20px;
+  height: 52px;
+  background-color: rgba(9, 14, 26, 0.8);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 8px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   color: #F8FAFC;
   flex-shrink: 0;
+  z-index: 30;
 }
 
 .viewer-doc-info {
@@ -1340,9 +1363,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at center, #1E293B 0%, #0F172A 100%);
+  background: radial-gradient(circle at center, #1A2536 0%, #080D17 100%);
   overflow: hidden;
   user-select: none;
+  padding: 10px 16px;
 }
 
 .nav-arrow-btn {
@@ -1395,17 +1419,18 @@ body {
   transition: transform 0.2s ease-out;
 }
 
-/* Book Container */
+/* Book Container - Maksimalkan ukuran tanpa batasan card sempit */
 .book-container {
   position: relative;
-  height: 84%;
-  aspect-ratio: 1 / 1.05; /* Proporsi 2 panel trifold berdampingan konstan */
+  width: min(calc(100vw - 64px), calc((100vh - 120px) * 0.9535), 1360px);
+  height: min(calc(100vh - 120px), calc((100vw - 64px) / 0.9535), 940px);
+  aspect-ratio: 1026 / 1076; /* Proporsi 2 panel trifold berdampingan konstan */
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
   display: flex;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 2px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 0 4px 16px rgba(0, 0, 0, 0.25);
   background-color: transparent;
-  border-radius: 6px;
+  border-radius: 4px;
   user-select: none;
   transition: transform 0.65s cubic-bezier(0.25, 1, 0.5, 1);
   will-change: transform;
@@ -1448,6 +1473,8 @@ body {
 
 /* Single Mode Aspect Ratio */
 .book-container.mode-single {
+  width: min(calc(100vw - 48px), calc((100vh - 120px) * (513 / 1076)), 600px);
+  height: min(calc(100vh - 120px), calc((100vw - 48px) / (513 / 1076)), 940px);
   aspect-ratio: 513 / 1076; /* Proporsi 1 panel trifold */
   transform: none !important;
 }
@@ -1585,33 +1612,33 @@ body {
 }
 
 .page-footer-tag {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(15, 23, 42, 0.9);
-  color: #FFFFFF;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 12px;
-  pointer-events: none;
-  white-space: nowrap;
+  display: none !important;
+}
+
+/* Default sembunyikan elemen mobile di desktop */
+.mobile-book,
+.mobile-float-close,
+.mobile-float-pill,
+.mobile-float-hint {
+  display: none;
 }
 
 /* =============================================================
    6. Bottombar Navigasi & Thumbnail Tray
    ============================================================= */
 .viewer-bottombar {
-  height: 64px;
-  background-color: #1F2937;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 0 20px;
+  height: 52px;
+  background-color: rgba(9, 14, 26, 0.8);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   flex-shrink: 0;
+  z-index: 30;
 }
 
 .progress-section {
@@ -1717,7 +1744,7 @@ body {
 
 .pharmacy-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 24px;
 }
 
@@ -1957,7 +1984,8 @@ body {
    ============================================================= */
 @media (max-width: 900px) {
   .header-container {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    padding: 10px 16px;
   }
   
   .header-nav {
@@ -1965,17 +1993,22 @@ body {
   }
 
   .landing-hero-section {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 36px;
     padding: 32px 0 40px 0;
   }
 
+  .landing-hero-section > * {
+    min-width: 0;
+  }
+
   .hero-headline {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .hero-showcase {
     order: -1;
+    min-width: 0;
   }
 
   .showcase-card {
@@ -1997,6 +2030,70 @@ body {
 }
 
 @media (max-width: 680px) {
+  .app-header {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+  }
+
+  .header-container {
+    flex-wrap: nowrap;
+    padding: 8px 12px;
+    gap: 8px;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .brand-section {
+    gap: 8px;
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+  }
+
+  .header-divider {
+    display: none;
+  }
+
+  .portal-badge {
+    display: none;
+  }
+
+  .portal-title {
+    font-size: 13.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mark-bold {
+    font-size: 16px;
+  }
+
+  .mark-sub {
+    font-size: 9.5px;
+  }
+
+  .portal-meta {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .header-actions {
+    flex-shrink: 0;
+  }
+
+  .btn-header-cta {
+    padding: 6px 10px;
+    font-size: 11.5px;
+    gap: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
   .hero-cta-group {
     flex-direction: column;
     align-items: stretch;
@@ -2030,29 +2127,247 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .nav-arrow-btn {
-    width: 44px;
-    height: 44px;
+  .pharmacy-grid {
+    grid-template-columns: 1fr;
   }
 
-  .nav-prev {
-    left: 8px;
+  /* Flipbook Modal Mobile Window - Borderless Immersive Canvas */
+  /* ============================================================
+     MOBILE FULL-SCREEN 3D FLIPBOOK (Tanpa Container, Edge-to-Edge)
+     ============================================================ */
+  .desktop-book {
+    display: none !important;
   }
 
-  .nav-next {
-    right: 8px;
+  .viewer-topbar,
+  .viewer-bottombar,
+  .nav-arrow-btn,
+  .flipbook-backdrop {
+    display: none !important;
   }
 
-  .tool-btn-label {
+  .flipbook-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #060911 !important;
+    overflow: hidden !important;
+    z-index: 99999 !important;
+    touch-action: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
+
+  .flipbook-window {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #060911 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    touch-action: none !important;
+  }
+
+  .viewer-stage {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: radial-gradient(circle at center, #111A29 0%, #05080E 100%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    touch-action: none !important;
+    user-select: none !important;
+    overflow: hidden !important;
+  }
+
+  .book-viewport {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    perspective: 1400px !important;
+    -webkit-perspective: 1400px !important;
+  }
+
+  /* Floating UI Mobile */
+  .mobile-float-close {
+    display: flex !important;
+    position: fixed !important;
+    top: 14px !important;
+    right: 14px !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    background: rgba(15, 23, 42, 0.75) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    color: #FFFFFF !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 150 !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .mobile-float-close:active {
+    transform: scale(0.92);
+    background: rgba(220, 38, 38, 0.85) !important;
+  }
+
+  .mobile-float-pill {
+    display: block !important;
+    position: fixed !important;
+    bottom: 16px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: rgba(15, 23, 42, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 6px 16px !important;
+    border-radius: 20px !important;
+    color: #FFFFFF !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    z-index: 150 !important;
+    pointer-events: none !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+    white-space: nowrap !important;
+  }
+
+  .mobile-float-hint {
+    display: block !important;
+    position: fixed !important;
+    bottom: 58px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #FFFFFF !important;
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    padding: 5px 12px !important;
+    border-radius: 14px !important;
+    z-index: 140 !important;
+    pointer-events: none !important;
+    white-space: nowrap !important;
+    animation: floatHintFade 4s ease-in-out forwards !important;
+  }
+
+  @keyframes floatHintFade {
+    0%   { opacity: 0; transform: translate(-50%, 6px); }
+    15%  { opacity: 1; transform: translate(-50%, 0); }
+    75%  { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -6px); }
+  }
+
+  /* Wadah Buku Mobile 3D - Full screen height */
+  .mobile-book {
+    display: block !important;
+    position: relative !important;
+    width: min(calc(100vw - 24px), calc((100dvh - 84px) * 0.4768)) !important;
+    height: min(calc(100dvh - 84px), calc((100vw - 24px) / 0.4768)) !important;
+    aspect-ratio: 513 / 1076 !important;
+    transform-style: preserve-3d !important;
+    -webkit-transform-style: preserve-3d !important;
+    user-select: none !important;
+    touch-action: none !important;
+  }
+
+  /* Setiap lembar halaman berdiri sendiri dengan rotasi 3D natural */
+  .mobile-leaf {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: #FFFFFF !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    transform-origin: left center !important;
+    transform-style: preserve-3d !important;
+    -webkit-transform-style: preserve-3d !important;
+    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden !important;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+    will-change: transform !important;
+    cursor: pointer !important;
+  }
+
+  .leaf-m-1 { z-index: 6; }
+  .leaf-m-2 { z-index: 5; }
+  .leaf-m-3 { z-index: 4; }
+  .leaf-m-4 { z-index: 3; }
+  .leaf-m-5 { z-index: 2; }
+  .leaf-m-6 { z-index: 1; }
+
+  .mobile-leaf.flipped {
+    pointer-events: none !important;
+  }
+
+  .mobile-leaf img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: fill !important;
+    display: block !important;
+    pointer-events: none !important;
+  }
+
+  .mobile-leaf-shadow {
+    position: absolute !important;
+    inset: 0 !important;
+    pointer-events: none !important;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.35) 100%) !important;
+    opacity: 0;
+    transition: opacity 0.25s ease !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .portal-meta {
     display: none;
   }
 
-  .thumb-btn {
-    min-width: 46px;
-    padding: 4px 6px;
+  .btn-header-cta .cta-text {
+    display: none;
   }
 
-  .thumb-label {
-    display: none;
+  .btn-header-cta {
+    padding: 6px 8px;
   }
 }

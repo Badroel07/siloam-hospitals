@@ -51,16 +51,24 @@ const state = {
   
   // State Viewer Flipbook
   isViewerOpen: false,
-  isSpreadMode: window.innerWidth >= 820,
+  isSpreadMode: true,
   currentPage: 1, // 1 s.d. 6
   currentSpread: 0, // 0: Cover (P1), 1: P2-P3, 2: P4-P5, 3: P6
   zoomLevel: 1.0,
   isAnimating: false,
+  isSwiping: false,
   
   // Touch Gestures
   touchStartX: 0,
-  touchStartY: 0
+  touchStartY: 0,
+  swipeHintShown: false,
+  mobilePage: 1
 };
+
+// Deteksi layar ponsel sesuai breakpoint CSS
+function isMobile() {
+  return window.innerWidth <= 680;
+}
 
 // =============================================================
 // Inisialisasi & Event Listeners
@@ -71,13 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initKeyboardNav();
   initTouchGestures();
   applyFilters();
-  
-  // Responsif resize untuk mode default buku
-  window.addEventListener("resize", () => {
-    if (window.innerWidth < 820 && state.isSpreadMode) {
-      setSpreadMode(false);
-    }
-  });
 });
 
 // =============================================================
@@ -262,22 +263,31 @@ function initViewerControls() {
   });
 }
 
+let savedBodyScrollY = 0;
+
 function openFlipbook(docId) {
   if (docId !== "ozempic") return;
 
   const modal = document.getElementById("flipbook-modal");
   if (!modal) return;
+
+  savedBodyScrollY = window.scrollY || window.pageYOffset || 0;
+  document.body.classList.add("modal-open");
+  document.body.style.top = `-${savedBodyScrollY}px`;
+
   modal.removeAttribute("hidden");
   modal.classList.add("is-open");
   modal.style.display = "flex";
   state.isViewerOpen = true;
   state.currentPage = 1;
   state.currentSpread = 0;
+  state.mobilePage = 1;
   state.zoomLevel = 1.0;
+  state.isSpreadMode = true;
   
-  document.body.style.overflow = "hidden";
   applyZoom();
   renderFlipbook();
+  renderMobileFlipbook();
 }
 
 function closeFlipbook() {
@@ -287,7 +297,10 @@ function closeFlipbook() {
   modal.setAttribute("hidden", "");
   modal.style.display = "none";
   state.isViewerOpen = false;
-  document.body.style.overflow = "";
+
+  document.body.classList.remove("modal-open");
+  document.body.style.top = "";
+  window.scrollTo(0, savedBodyScrollY);
 }
 
 function setSpreadMode(isSpread) {
@@ -363,8 +376,13 @@ function renderFlipbook() {
       leaves[1].classList.remove("flipped");
       leaves[2].classList.remove("flipped");
 
-      counterText.textContent = "2 - 3";
-      chapterText.textContent = "Langkah 1 & 2: Anatomi & Persiapan Jarum";
+      if (isMobile()) {
+        counterText.textContent = "2 - 3";
+        chapterText.textContent = LEAFLET_PAGES[1].chapter;
+      } else {
+        counterText.textContent = "2 - 3";
+        chapterText.textContent = "Langkah 1 & 2: Anatomi & Persiapan Jarum";
+      }
       prevBtn.disabled = false;
       nextBtn.disabled = false;
     } else if (spreadIndex === 2) {
@@ -375,8 +393,13 @@ function renderFlipbook() {
       leaves[1].classList.add("flipped");
       leaves[2].classList.remove("flipped");
 
-      counterText.textContent = "4 - 5";
-      chapterText.textContent = "Langkah 3 s.d. 5: Dosis & Prosedur Injeksi";
+      if (isMobile()) {
+        counterText.textContent = "4 - 5";
+        chapterText.textContent = LEAFLET_PAGES[3].chapter;
+      } else {
+        counterText.textContent = "4 - 5";
+        chapterText.textContent = "Langkah 3 s.d. 5: Dosis & Prosedur Injeksi";
+      }
       prevBtn.disabled = false;
       nextBtn.disabled = false;
     } else if (spreadIndex === 3) {
@@ -554,6 +577,7 @@ function goToPage(pageNum) {
 }
 
 function handleFaceClick(pageNum) {
+  if (state.isSwiping) return;
   if (state.isSpreadMode) {
     if (pageNum === 1 || pageNum === 3 || pageNum === 5) {
       flipNext();
@@ -621,32 +645,210 @@ function initKeyboardNav() {
 }
 
 // =============================================================
-// 5. Gestur Sentuh / Swipe Ponsel (Mobile Friendly)
+// 5. Logika & Gestur Sentuh 3D Flipbook Mobile (6 Halaman Penuh)
 // =============================================================
+function renderMobileFlipbook() {
+  const leaves = document.querySelectorAll(".mobile-leaf");
+  leaves.forEach((leaf) => {
+    const pageNum = parseInt(leaf.dataset.page, 10);
+    leaf.style.transition = "";
+    const shadow = leaf.querySelector(".mobile-leaf-shadow");
+    if (shadow) shadow.style.opacity = "";
+
+    if (pageNum < state.mobilePage) {
+      leaf.style.transform = "rotateY(-180deg)";
+      leaf.classList.add("flipped");
+    } else {
+      leaf.style.transform = "rotateY(0deg)";
+      leaf.classList.remove("flipped");
+    }
+  });
+
+  const pageNumEl = document.getElementById("mobile-page-num");
+  if (pageNumEl) pageNumEl.textContent = state.mobilePage;
+}
+
+function mobileFlipNext() {
+  if (state.mobilePage >= 6) return;
+  const leaf = document.querySelector(`.mobile-leaf[data-page="${state.mobilePage}"]`);
+  if (!leaf) return;
+
+  leaf.style.transition = "transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)";
+  leaf.style.transform = "rotateY(-180deg)";
+  leaf.classList.add("flipped");
+
+  state.mobilePage++;
+  const pageNumEl = document.getElementById("mobile-page-num");
+  if (pageNumEl) pageNumEl.textContent = state.mobilePage;
+}
+
+function mobileFlipPrev() {
+  if (state.mobilePage <= 1) return;
+  const targetPage = state.mobilePage - 1;
+  const leaf = document.querySelector(`.mobile-leaf[data-page="${targetPage}"]`);
+  if (!leaf) return;
+
+  leaf.style.transition = "transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)";
+  leaf.style.transform = "rotateY(0deg)";
+  leaf.classList.remove("flipped");
+
+  state.mobilePage--;
+  const pageNumEl = document.getElementById("mobile-page-num");
+  if (pageNumEl) pageNumEl.textContent = state.mobilePage;
+}
+
 function initTouchGestures() {
   const stage = document.getElementById("viewer-stage");
   if (!stage) return;
 
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchStartTime = 0;
+  let isDragging = false;
+  let dragDirection = 0; // -1 = next, 1 = prev
+  let activeMobileLeaf = null;
+
   stage.addEventListener("touchstart", (e) => {
-    state.touchStartX = e.changedTouches[0].screenX;
-    state.touchStartY = e.changedTouches[0].screenY;
+    if (e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+    isDragging = false;
+    dragDirection = 0;
+    activeMobileLeaf = null;
   }, { passive: true });
 
-  stage.addEventListener("touchend", (e) => {
-    const endX = e.changedTouches[0].screenX;
-    const endY = e.changedTouches[0].screenY;
-    const deltaX = endX - state.touchStartX;
-    const deltaY = endY - state.touchStartY;
+  stage.addEventListener("touchmove", (e) => {
+    if (!state.isViewerOpen) return;
+    if (isMobile()) {
+      e.preventDefault(); // Kunci scrolling halaman/browser saat modal flipbook aktif di layar ponsel
+    }
 
-    // Deteksi swipe horizontal jika lebih dominan dari vertikal
-    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY)) {
-      if (deltaX < 0) {
-        // Swipe ke kiri -> Halaman Selanjutnya
-        flipNext();
-      } else {
-        // Swipe ke kanan -> Halaman Sebelumnya
-        flipPrev();
+    if (e.touches.length !== 1) return;
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - touchStartX;
+    const deltaY = currentY - touchStartY;
+
+    if (Math.abs(deltaX) > 6) {
+      isDragging = true;
+
+      if (isMobile()) {
+        const stageWidth = window.innerWidth;
+        const progress = Math.min(1, Math.max(0, Math.abs(deltaX) / (stageWidth * 0.5)));
+
+        if (deltaX < 0 && state.mobilePage < 6) {
+          // Dragging left -> membalik halaman saat ini maju
+          dragDirection = -1;
+          activeMobileLeaf = document.querySelector(`.mobile-leaf[data-page="${state.mobilePage}"]`);
+          if (activeMobileLeaf) {
+            activeMobileLeaf.style.transition = "none";
+            const angle = -progress * 180;
+            activeMobileLeaf.style.transform = `rotateY(${angle}deg)`;
+            const shadow = activeMobileLeaf.querySelector(".mobile-leaf-shadow");
+            if (shadow) shadow.style.opacity = progress * 0.65;
+          }
+        } else if (deltaX > 0 && state.mobilePage > 1) {
+          // Dragging right -> membuka kembali halaman sebelumnya
+          dragDirection = 1;
+          activeMobileLeaf = document.querySelector(`.mobile-leaf[data-page="${state.mobilePage - 1}"]`);
+          if (activeMobileLeaf) {
+            activeMobileLeaf.style.transition = "none";
+            const angle = -180 + progress * 180;
+            activeMobileLeaf.style.transform = `rotateY(${angle}deg)`;
+            const shadow = activeMobileLeaf.querySelector(".mobile-leaf-shadow");
+            if (shadow) shadow.style.opacity = (1 - progress) * 0.65;
+          }
+        }
       }
     }
+  }, { passive: false });
+
+  stage.addEventListener("touchend", (e) => {
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const deltaX = endX - touchStartX;
+    const deltaY = endY - touchStartY;
+    const elapsed = Date.now() - touchStartTime;
+
+    if (isMobile()) {
+      const stageWidth = window.innerWidth;
+      const progress = Math.abs(deltaX) / (stageWidth * 0.55);
+      const isFlick = elapsed < 300 && Math.abs(deltaX) > 22;
+      const shouldComplete = progress > 0.2 || isFlick;
+
+      if (isDragging && activeMobileLeaf) {
+        if (dragDirection === -1) {
+          // Next page
+          if (shouldComplete && state.mobilePage < 6) {
+            activeMobileLeaf.style.transition = "transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)";
+            activeMobileLeaf.style.transform = "rotateY(-180deg)";
+            activeMobileLeaf.classList.add("flipped");
+            state.mobilePage++;
+            const pill = document.getElementById("mobile-page-num");
+            if (pill) pill.textContent = state.mobilePage;
+          } else {
+            // Cancel snap back
+            activeMobileLeaf.style.transition = "transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)";
+            activeMobileLeaf.style.transform = "rotateY(0deg)";
+          }
+          const shadow = activeMobileLeaf.querySelector(".mobile-leaf-shadow");
+          if (shadow) shadow.style.opacity = "";
+        } else if (dragDirection === 1) {
+          // Prev page
+          if (shouldComplete && state.mobilePage > 1) {
+            activeMobileLeaf.style.transition = "transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)";
+            activeMobileLeaf.style.transform = "rotateY(0deg)";
+            activeMobileLeaf.classList.remove("flipped");
+            state.mobilePage--;
+            const pill = document.getElementById("mobile-page-num");
+            if (pill) pill.textContent = state.mobilePage;
+          } else {
+            // Cancel snap back
+            activeMobileLeaf.style.transition = "transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)";
+            activeMobileLeaf.style.transform = "rotateY(-180deg)";
+          }
+          const shadow = activeMobileLeaf.querySelector(".mobile-leaf-shadow");
+          if (shadow) shadow.style.opacity = "";
+        }
+      } else if (!isDragging && elapsed < 320 && Math.abs(deltaX) < 12 && Math.abs(deltaY) < 12) {
+        // Tap navigasi cepat di sisi layar ponsel
+        const tapX = endX;
+        if (tapX > stageWidth * 0.52) {
+          mobileFlipNext();
+        } else if (tapX < stageWidth * 0.48) {
+          mobileFlipPrev();
+        }
+      }
+
+      isDragging = false;
+      dragDirection = 0;
+      activeMobileLeaf = null;
+      return;
+    }
+
+    // Navigasi swipe desktop
+    const isFlick = elapsed < 320 && Math.abs(deltaX) > 22;
+    const isDragSwipe = Math.abs(deltaX) > 35;
+    if ((isFlick || isDragSwipe) && Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX < 0) flipNext();
+      else flipPrev();
+    }
   }, { passive: true });
+
+  // Event klik/tap langsung pada buku mobile
+  const mobileBook = document.getElementById("mobile-book");
+  if (mobileBook) {
+    mobileBook.addEventListener("click", (e) => {
+      const rect = mobileBook.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      if (clickX > rect.width * 0.52) {
+        mobileFlipNext();
+      } else if (clickX < rect.width * 0.48) {
+        mobileFlipPrev();
+      }
+    });
+  }
 }
+
